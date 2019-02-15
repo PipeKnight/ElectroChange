@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- <meta http-equiv="X-UA-Compatible" content="ie=edge"> -->
+<title>Document</title>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font: 20px Arial;  
+}
+
+.autocomplete {
+  /*the container must be positioned relative:*/
+  position: relative;
+  display: inline-block;
+}
+
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 100%;
+}
+
+input[type=submit] {
+  background-color: DodgerBlue;
+  color: #fff;
+  cursor: pointer;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.autocomplete-items div {
+  padding: 16px;
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+}
+
+.autocomplete-items div:hover {
+/*when hovering an item:*/
+background-color: #e9e9e9; 
+}
+
+.autocomplete-active {
+/*when navigating through the items using the arrow keys:*/
+background-color: DodgerBlue !important; 
+color: #ffffff; 
+}
+
+</style>
+
+</head>
+
+<body style="background-color: Red">
+
+<h2>Калькулятор рентабельности электротранстпорта</h2>
+<pre>Введите:</pre>
+<pre>    A) номер маршрута, если хотите посчитать для конкретного маршрута</pre>
+<pre>    Б) -1, если хотите посчитать для всех маршрутов сразу</pre>
+<!--Make sure the form has the autocomplete function switched off:-->
+<form autocomplete="off" onclick="Process()">
+  <div class="autocomplete" style="width:300px;">
+    <input id="myInput" type="text" name="myCountry" placeholder="">
+  </div>
+  <!-- <input type="submit"> -->
+</form>
+
+  <div class="col-7">
+    <div id="result">
+
+    </div>
+  </div>
+ 
+
+<script>
+
+	const N = 4;
+	const M = 1000 * 1000;
+
+	// all "Base" values are actual for 2018 year
+	const InflationOfPrice = 1.05;
+	const   BasePriceOfBus = 12820 * 1000;
+	const BasePriceOfElectr = 5.38; // can check from net
+	const BasePriceOfFuel = 44.33; // can check from net
+	const BaseSalary = 56000;
+	const BasePriceOfContactNetwork = 8 * 1000 * 1000; // per kilometer
+	const BasePriceOfElectrobus = 33 * 1000 * 1000; // электробусы с быстрой зарядкой
+	const BasePriceOfTrolleybus1 = 15 * 1000 * 1000; // обычные троллейбусы
+	const BasePriceOfTrolleybus2 = 20 * 1000 * 1000; // с автономным ходом
+	const BasePriceOfElectrobus2 = 33 * 1000 * 1000; // с ночной зарядкой
+	const PriceOfChargingStation = 13 * 1000 * 1000;
+	const BaseServiceOfContactNetwork = 5000 * 12; // per year
+	const BaseServiceOfChargingStation = 44600 * 12; // per year
+	
+	const ElectrConsumption = 2.32; // per kilometer
+	const LifeOfBus = 5; // 5 or 6 years
+	const LifeOfElectrobus = 13; // 15 years, but battery lives less
+	const LifeOfTrolleybus1 = 11; // 11 or 12 years
+	const LifeOfTrolleybus2 = 11; // 11 or 12 years
+	const LifeOfElectrobus2 = 12; // "we do not know" years
+		
+		/*string t;
+		while (R >> t) {
+			CorrectRoutes.push_back(t);
+		}
+
+		string Route;
+
+		cout << "Введите:\n\tA) номер маршрута, если хотите посчитать для конкретного маршрута\n\tБ) -1, если хотите посчитать для всех маршрутов сразу\n\tВ) -2, если хотите завершить работу\n";
+		cin >> Route;
+		while (Route != "-2") {
+			if (Route == "-1") {
+				auto ans = Calc(CorrectRoutes[0], 2018);
+				for (auto i = 1; i < CorrectRoutes.size(); ++i) {
+					auto t = Calc(CorrectRoutes[i], 2018);
+					ans.first += t.first;
+					for (auto i = 0; i < N; ++i) {
+						ans.second.first[i] += t.second.first[i];
+						ans.second.second[i] += t.second.second[i];
+					}
+				}
+				Prvar(ans);
+			} else {
+				if (find(CorrectRoutes.begin(), CorrectRoutes.end(), Route) == CorrectRoutes.end()) {
+					cout << "Введён неправильный номер" << endl;
+				} else {
+					auto ans = Calc(Route, 2018);
+					Prvar(ans);
+				}
+			}
+			cin >> Route;
+		}*/
+		
+		
+	//}
+	  
+	function Calc(Route, Date) {
+		// We need "Date" if we want to calculate other years (for far perspective, maybe)
+		//ifstream in("data/calcdata/" + Route + ".txt");
+		
+		/*alert(0);*/
+		var fso = new ActiveXObject("Scripting.FileSystemObject");
+		var in = fso.OpenTextFile("data/calcdata/" + Route + ".txt", 1);
+		/*alert(1);*/
+		
+		var txt = '';
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.onreadystatechange = function() {
+			if (xmlhttp.status == 200 && xmlhttp.readyState == 0) {
+				txt = xmlhttp.responseText;
+			}
+		};
+		xmlhttp.open("GET", "data/calcdata/" + Route + ".txt", true);
+		xmlhttp.send();
+		alert(txt);
+		
+		var Bus = 0;
+		var Length = 0;
+		var Cnt = 0;
+		var FuelConsumption = 0;
+		var Electr = 0;
+		var ServiceOfBusPerYear = 0;
+		var CostOfPurchases = [0, 0, 0, 0];
+		var CostOfSerPerYear = [0, 0, 0, 0];
+		var DriverSalary = [0, 0, 0, 0];
+		var NewBus = [0, 0, 0, 0];
+		var Inflation = 1;//pow(InflationOfPrice, Date - 2018);
+		var PriceOfBus = BasePriceOfBus * Inflation;
+		var PriceOfElectrobus = BasePriceOfElectrobus * Inflation;
+		var PriceOfTrolleybus1 = BasePriceOfTrolleybus1 * Inflation;
+		var PriceOfTrolleybus2 = BasePriceOfTrolleybus2 * Inflation;
+		var PriceOfElectrobus2 = BasePriceOfElectrobus2 * Inflation;
+		var PriceOfContactNetwork = BasePriceOfContactNetwork * Inflation;
+		var PriceOfElectr = BasePriceOfElectr * Inflation;
+		var PriceOfFuel = BasePriceOfFuel * Inflation;
+		var Salary = BaseSalary * Inflation;
+		var ServiceOfContactNetwork = BaseServiceOfContactNetwork * Inflation;
+		var ServiceOfChargingStation = BaseServiceOfChargingStation * Inflation;
+
+		/*in >> Length; // Протяженность маршрута (туда и обратно) в километрах
+		in >> Cnt; // Сколько раз за год автобус в среднем проходит маршрут
+		in >> Bus; // Количество автобусов на маршруте
+		in >> Electr; // Процерт маршрута покрыт контактной сетью
+		in >> FuelConsumption; // Расход топлива на 100 км*/
+		var Length = in.ReadLine();
+		var Cnt = in.ReadLine();
+		var Bus = in.ReadLine();
+		var Electr = in.ReadLine();
+		var FuelConsumption	= in.ReadLine();
+		/*alert(2);*/
+		
+		FuelConsumption /= 100;
+		NewBus[0] = Bus * 3 / 2;
+		NewBus[1] = Bus;
+		NewBus[2] = Bus;
+		NewBus[3] = Bus;
+		DriverSalary[0] += Salary * NewBus[0] * 2;
+		DriverSalary[1] += Salary * NewBus[1] * 2;
+		DriverSalary[2] += Salary * NewBus[2] * 2;
+		DriverSalary[3] += Salary * NewBus[3] * 2;
+		CostOfPurchases[0] += (NewBus[0] * PriceOfElectrobus)  + (NewBus[0] * PriceOfChargingStation * 2 / 3);
+		CostOfPurchases[1] += (NewBus[1] * PriceOfTrolleybus1) + (Length * PriceOfContactNetwork * (100 - Electr) / 100);
+		CostOfPurchases[2] += (NewBus[2] * PriceOfTrolleybus2) + (Length * PriceOfContactNetwork * Math.max(0.0 * Electr, 50 - Electr) / 100);
+		CostOfPurchases[3] += (NewBus[3] * PriceOfElectrobus2) + (NewBus[3] * PriceOfChargingStation / 10);
+		CostOfSerPerYear[0] += (PriceOfElectrobus * NewBus[0]  / LifeOfElectrobus)  + ((NewBus[0]  * 2 / 3) * ServiceOfChargingStation) + (NewBus[0] * Length * (Cnt / 2) * (FuelConsumption / 2) * PriceOfFuel);
+		CostOfSerPerYear[1] += (PriceOfTrolleybus1 * NewBus[1] / LifeOfTrolleybus1) + (Length * ServiceOfContactNetwork)                + (NewBus[1] * Length * Cnt * ElectrConsumption * PriceOfElectr);
+		CostOfSerPerYear[2] += (PriceOfTrolleybus2 * NewBus[2] / LifeOfTrolleybus2) + ((Length / 2) * ServiceOfContactNetwork)          + (NewBus[2] * Length * Cnt * ElectrConsumption * PriceOfElectr);
+		CostOfSerPerYear[3] += (PriceOfElectrobus2 * NewBus[3] / LifeOfElectrobus2) + ((NewBus[3] / 10) * ServiceOfChargingStation)     + (NewBus[3] * Length * (Cnt / 2) * (FuelConsumption / 2) * PriceOfFuel);
+		ServiceOfBusPerYear += (PriceOfBus * Bus / LifeOfBus) + (Bus * Length * Cnt * FuelConsumption * PriceOfFuel);
+		CostOfSerPerYear[0] += DriverSalary[0] * 12;
+		CostOfSerPerYear[1] += DriverSalary[1] * 12;
+		CostOfSerPerYear[2] += DriverSalary[2] * 12;
+		CostOfSerPerYear[3] += DriverSalary[3] * 12;
+		ServiceOfBusPerYear += DriverSalary[1] * 12;
+		in.Close();
+		return [ServiceOfBusPerYear, CostOfPurchases, CostOfSerPerYear];
+	}
+	
+	function Print(ans) {
+		var ServiceOfBusPerYear = ans[0];
+		var CostOfPurchases = ans[1];
+		var CostOfSerPerYear = ans[2];
+		var out = document.getElementById('result');
+		out.innerHTML = "<br>" + "Сколько нужно начальных инвестиций (в млн рублей) для замены дизельных автобусов на:\n" + "<br>" +
+			"\t -- электробусы: " << CostOfPurchases[0] * 1.0 / M + "<br>" +
+			"\t -- троллейбусы: " << CostOfPurchases[1] * 1.0 / M + "<br>" +
+			"\t -- троллейбусы с автономным ходом: " << CostOfPurchases[2] * 1.0 / M + "<br>" +
+			"<br>" + "Во сколько будет обходиться обслуживание в год в млн рублей (учитывая амортизационную стоимость):\n"; +
+			"\t -- автобусы: " << ServiceOfBusPerYear * 1.0 / M + "<br>" +
+			"\t -- электробусы: " << CostOfSerPerYear[0] * 1.0 / M + "<br>" +
+			"\t -- троллейбусы: " << CostOfSerPerYear[1] * 1.0 / M + "<br>" +
+			"\t -- троллейбусы с автономным ходом: " << CostOfSerPerYear[2] * 1.0 / M + "<br>";
+	}
+	
+	function autocomplete(inp, arr) {
+  /*the autocomplete function takes two arguments,
+  the text field element and an array of possible autocompleted values:*/
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+  inp.addEventListener("input", function(e) {
+      var a, b, i, val = this.value;
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array...*/
+      for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+  /*execute a function presses a key on the keyboard:*/
+  inp.addEventListener("keydown", function(e) {
+      var x = document.getElementById(this.id + "autocomplete-list");
+      if (x) x = x.getElementsByTagName("div");
+      if (e.keyCode == 40) {
+        /*If the arrow DOWN key is pressed,
+        increase the currentFocus variable:*/
+        currentFocus++;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 38) { //up
+        /*If the arrow UP key is pressed,
+        decrease the currentFocus variable:*/
+        currentFocus--;
+        /*and and make the current item more visible:*/
+        addActive(x);
+      } else if (e.keyCode == 13) {
+        /*If the ENTER key is pressed, prevent the form from being submitted,*/
+        e.preventDefault();
+        if (currentFocus > -1) {
+          /*and simulate a click on the "active" item:*/
+          if (x) x[currentFocus].click();
+        }
+      }
+  });
+  function addActive(x) {
+    /*a function to classify an item as "active":*/
+    if (!x) return false;
+    /*start by removing the "active" class on all items:*/
+    removeActive(x);
+    if (currentFocus >= x.length) currentFocus = 0;
+    if (currentFocus < 0) currentFocus = (x.length - 1);
+    /*add class "autocomplete-active":*/
+    x[currentFocus].classList.add("autocomplete-active");
+  }
+  function removeActive(x) {
+    /*a function to remove the "active" class from all autocomplete items:*/
+    for (var i = 0; i < x.length; i++) {
+      x[i].classList.remove("autocomplete-active");
+    }
+  }
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
+      closeAllLists(e.target);
+  });
+}
+
+function Process() {
+	var a = document.querySelector('#myInput').value;
+	//var out=document.getElementById('result');
+    //out.innerHTML = a;
+	if (a != "-1") {
+		var ans = Calc(a, 2018);
+		//alert('ura!');
+		Print(ans);
+	}
+}
+
+/*An array containing all the routes in Moscow:*/
+var CorrectRoutes = ["0", "1", "10", "1001", "1002", "1004", "101", "102", "103", "104", "105", "105К", "106", "107", "108", "109", "11", "110", "111", "112Э", "113", "1133", "114", "1147", "116", "117", "118", "12", "120", "121", "122", "123", "124", "126", "127", "129", "130", "131", "133", "134", "135", "136", "137", "14", "142", "143", "144", "144К", "146", "147", "147К", "148", "149", "15", "150", "151", "151К", "152", "153", "154", "155", "156", "157", "157К", "158", "159", "16", "160", "161", "162", "163", "164", "165", "166", "167", "168", "169", "17", "170", "171", "173", "174", "175", "176", "177", "179", "18", "180", "181", "182", "183", "184", "185", "186", "187", "189", "192", "193", "194", "196", "197", "198", "199", "2", "20", "200", "202", "203", "204", "205", "205К", "207", "208", "209", "21", "210", "211", "212", "213", "214", "215К", "216", "217", "218", "218К", "219", "22", "220", "221", "222", "223", "224", "226", "227", "228", "229", "23", "230", "231", "232", "233", "234", "235", "237", "238", "239", "24", "240", "241", "242", "243", "245", "246", "247", "248", "249", "24К", "251", "251К", "252", "253", "254", "255", "256", "257", "257К", "258", "260", "261", "262", "263", "264", "266", "267", "268", "268К", "269", "269К", "27", "271", "272", "272К", "273", "274", "275", "276", "278", "279", "28", "280", "281", "283", "284", "285", "286", "287", "288", "289", "29", "291", "292", "293", "295", "296", "297", "298", "299", "29К", "3", "30", "303", "304", "31", "32", "321", "33", "34", "349", "34К", "35", "36", "363", "37", "38", "384", "385", "39", "393", "398", "4", "40", "400", "400К", "400Т", "400Э", "403", "408", "42", "420", "43", "433", "444", "45", "46", "462", "48", "49", "5", "50", "503", "507", "508", "51", "510", "512", "513", "514", "515", "518", "52", "520", "526", "53", "531", "533", "54", "55", "565", "569", "57", "570", "577", "58", "59", "60", "600", "604", "605", "607", "608", "609", "61", "610", "611", "612", "613", "614", "615", "616", "62", "620", "621", "622", "623", "624", "625", "626", "627", "627К", "628", "629", "630", "631", "632", "633", "634", "635", "636", "637", "638", "639", "64", "640", "642", "642К", "643", "645", "646", "647", "648", "649", "65", "651", "652", "653", "654", "655", "655К", "656", "657", "659", "65К", "66", "661", "662", "663", "664", "665", "668", "669", "67", "670", "670К", "671", "672", "674", "674К", "675", "677", "677К", "678", "679", "68", "680", "681", "682", "683", "684", "685", "686", "687", "688", "689", "69", "690", "692", "693", "694", "695", "696", "697", "698", "699", "7", "70", "700", "701", "703", "705", "706", "707", "708", "709", "71", "710", "711", "712", "713", "715", "716", "717", "718", "719", "72", "720", "721", "722", "723", "724", "724К", "725", "726", "728", "729", "730", "731", "732", "733", "734", "735", "736", "737", "738", "74", "740", "741", "742", "743", "744", "747", "748", "749", "75", "750", "751", "752", "753", "754", "756", "757", "758", "759", "76", "760", "761", "762", "763", "763К", "764", "765", "766", "767", "768", "769", "77", "770", "772", "773", "775", "776", "777", "778", "779", "78", "780", "781", "782", "784", "785", "786", "789", "79", "790", "791", "792", "793", "794", "795", "796", "797", "798", "799", "8", "800", "801", "802", "803", "804", "805", "806", "807", "808", "81", "811", "812", "813", "815К", "816", "817", "818", "819", "82", "820", "821", "822", "825", "826", "828", "829", "830", "831", "832", "833", "834", "835", "836", "837", "838", "839", "84", "840", "841", "842", "843", "846", "847", "848", "849", "84К", "85", "850", "851", "855", "857", "858", "859", "86", "860", "861", "862", "863", "864", "865", "866", "867", "868", "869", "87", "870", "871", "872", "873", "874", "874К", "875", "876", "878", "879", "880", "881", "882", "883", "884", "885", "886", "887", "889", "88К", "890", "890К", "891", "892", "893", "895", "895К", "896", "898", "898К", "899", "9", "90", "901", "902", "903", "904", "904К", "905", "906", "907", "908", "911", "92", "928", "93", "930", "94", "95", "950", "958", "959", "96", "961", "962", "964", "97", "98", "982", "983", "А", "Б", "БК", "БН", "ВК", "З-1", "З-10", "З-11", "З-12", "З-14", "З-15", "З-16", "З-17", "З-19", "З-2", "З-20", "З-21", "З-22", "З-24", "З-27", "З-28", "З-3", "З-32", "З-4", "З-5", "З-8", "З-9", "К", "М1", "М10", "М2", "М27", "М3", "М5", "М7", "М8", "М9", "МЦ1", "Н1", "Н2", "Н4", "Н5", "Н7", "С1", "С10", "С11", "С12", "С2", "С3", "С4", "С5", "С6", "С8", "С9", "Т", "Т10", "Т13", "Т18", "Т19", "Т25", "Т26", "Т29", "Т3", "Т32", "Т39", "Т47", "Т51", "Т55", "Т56", "Т63", "Т67", "Т71", "Т78", "Т79", "Т86", "Т88"];
+// it is stored in "data/works.txt", but it's hard to work with files in JS, so...
+
+/*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+autocomplete(document.getElementById("myInput"), CorrectRoutes);
+	
+</script>
+
+</body>
+
+</html>
