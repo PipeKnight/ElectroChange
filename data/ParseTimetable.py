@@ -14,34 +14,43 @@ def ParseMosgortransTimetable():
 
     for way in routes_list.readlines():
         way = way.strip()
-        route_file = open('timetable/' + way +  '.txt', 'w', encoding='utf-8')
-        for date in Date:
-            route = dict()
-            for direction in Direction:
-                for waypoint in Waypoint:
-                    ref = prefix + '&way=' + quote(way.encode('cp1251')) + '&date=' + date + '&direction=' + direction + '&waypoint=' + waypoint
-                    r = requests.get(ref)
-                    source = r.text.split('\n')
-                    hour = -1
-                    minute = -1
-                    for s in source:
-                        if h in s:
-                            hour = s.split(h)[1].split('>')[1].split('<')[0]
-                        if m in s:
-                            color = date + ' ' + direction
-                            if 'style="color: ' in s:
-                                color += ' ' + s.split('style="color: ')[1].split(';')[0]
-                            minute = s.split(m)[1].split('>')[1].split('<')[0]
-                            if minute == '':
-                                continue
-                            time = int(hour) * 60 + int(minute)
-                            if color not in route.keys():
-                                route[color] = []
-                            route[color].append(time)
-            for i in route:
-                print(i, file=route_file)
-                print(*route[i], file=route_file)
-        route_file.close()
+        with open(f'timetable/{way}.txt', 'w', encoding='utf-8') as route_file:
+            for date in Date:
+                route = {}
+                for direction in Direction:
+                    for waypoint in Waypoint:
+                        ref = (
+                            f'{prefix}&way='
+                            + quote(way.encode('cp1251'))
+                            + '&date='
+                            + date
+                            + '&direction='
+                            + direction
+                            + '&waypoint='
+                            + waypoint
+                        )
+
+                        r = requests.get(ref)
+                        source = r.text.split('\n')
+                        hour = -1
+                        minute = -1
+                        for s in source:
+                            if h in s:
+                                hour = s.split(h)[1].split('>')[1].split('<')[0]
+                            if m in s:
+                                color = f'{date} {direction}'
+                                if 'style="color: ' in s:
+                                    color += ' ' + s.split('style="color: ')[1].split(';')[0]
+                                minute = s.split(m)[1].split('>')[1].split('<')[0]
+                                if minute == '':
+                                    continue
+                                time = int(hour) * 60 + int(minute)
+                                if color not in route.keys():
+                                    route[color] = []
+                                route[color].append(time)
+                for i, value in route.items():
+                    print(i, file=route_file)
+                    print(*value, file=route_file)
 
 
 def ParseLkcarTimetable():
@@ -56,33 +65,42 @@ def ParseLkcarTimetable():
     Direction = ['0', '1'] # 0 - туда, 1 - обратно
     Waypoint = ['0'] # ???
 
-    for way in range(0, 5000):
+    for way in range(5000):
         way = string(way)
-        route_file = open('timetable2/' + way +  '.txt', 'w', encoding='utf-8')
-        for date in Date:
-            route = dict()
-            for direction in Direction:
-                for waypoint in Waypoint:
-                    ref = prefix + '&way=' + quote(way.encode('cp1251')) + '&date=' + date + '&direction=' + direction + '&waypoint=' + waypoint
-                    r = requests.get(ref)
-                    source = r.text.split('\n')
-                    hour = -1
-                    minute = -1
-                    for s in source:
-                        if h in s:
-                            hour = s.split(h)[1].split('>')[1].split('<')[0]
-                        if m in s:
-                            color = date + ' ' + direction
-                            if 'style="color: ' in s:
-                                color += ' ' + s.split('style="color: ')[1].split(';')[0]
-                            minute = s.split(m)[1].split('>')[1].split('<')[0]
-                            if minute == '':
-                                continue
-                            time = int(hour) * 60 + int(minute)
-                            if color not in route.keys():
-                                route[color] = []
-                            route[color].append(time)
-            for i in route:
-                print(i, file=route_file)
-                print(*route[i], file=route_file)
-        route_file.close()
+        with open(f'timetable2/{way}.txt', 'w', encoding='utf-8') as route_file:
+            for date in Date:
+                route = {}
+                for direction in Direction:
+                    for waypoint in Waypoint:
+                        ref = (
+                            f'{prefix}&way='
+                            + quote(way.encode('cp1251'))
+                            + '&date='
+                            + date
+                            + '&direction='
+                            + direction
+                            + '&waypoint='
+                            + waypoint
+                        )
+
+                        r = requests.get(ref)
+                        source = r.text.split('\n')
+                        hour = -1
+                        minute = -1
+                        for s in source:
+                            if h in s:
+                                hour = s.split(h)[1].split('>')[1].split('<')[0]
+                            if m in s:
+                                color = f'{date} {direction}'
+                                if 'style="color: ' in s:
+                                    color += ' ' + s.split('style="color: ')[1].split(';')[0]
+                                minute = s.split(m)[1].split('>')[1].split('<')[0]
+                                if minute == '':
+                                    continue
+                                time = int(hour) * 60 + int(minute)
+                                if color not in route.keys():
+                                    route[color] = []
+                                route[color].append(time)
+                for i, value in route.items():
+                    print(i, file=route_file)
+                    print(*value, file=route_file)

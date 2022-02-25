@@ -1,5 +1,5 @@
-F1 = dict()
-F2 = dict()
+F1 = {}
+F2 = {}
 
 def Calculate():
     import json
@@ -9,13 +9,13 @@ def Calculate():
     from os.path import isfile, join
 
     global F1, F2
-    
+
     files = [f.split('.')[0] for f in listdir('reestr/') if isfile(join('reestr/', f))]
     routes_list = open('routes_list.txt', 'r')
     routes = routes_list.readlines()
 
-    
-    percent = dict()
+
+    percent = {}
     ref = 'https://github.com/sergets/sergets.github.io/tree/master/mgtmap-gp/actuals'
     r = requests.get(ref)
     source = r.text.split('\n')
@@ -54,45 +54,47 @@ def Calculate():
             for hour in JSON[route][day]:
                 F2[route] += JSON[route][day][hour] * 365 / 7 * c
 
-    
+
     for route in routes:
         route = route.strip()
         if route not in files:
             continue
-        t_file = open('timetable/' + route + '.txt', 'r')
-        r_file = open('reestr/' + route + '.txt', 'r')
-        fout = open('calcdata/' + route + '.txt', 'w')
-        arr = r_file.readline().split(';')
-        dist = float(arr[0].split()[0].split('(')[0].replace(',', '.'))
-        num = int(arr[1])
-        tmp = t_file.readlines()
-        time = dict()
-        for i in range(0, len(tmp), 2):
-            time[tmp[i].strip()] = list(map(int, tmp[i + 1].split()))
-        cnt = 0
-        for i in time:
-            if 'BA' not in i:
-                continue
-            cnt += 365 / 7 * i.count('1') * len(time[i])
-        F1[route] = cnt
-        print(dist, file=fout) # Расстояние туда и обратно
-        if route in F2:
-            print(F2[route] / max(num, 1), file=fout)
-        else:
-            print(F1[route] / max(num, 1), file=fout)
-        #print(round(cnt / max(num, 1)), file=fout) # Сколько в среднем за год
-        # проходит один автобус по маршруту
-        
-        print(num, file=fout) # количество автобусов на маршруте
-        if route in percent:
-            print(percent[route] * 100, file=fout)
-        elif 'НМ-' in route or 'З-' in route:
-            print(0, file=fout)
-        else:
-            print(Sum * 100, file=fout)
-        #print(100, file=fout) # процент под контактной сетью
-        print(30, file=fout) # расход топлива на 100 км
-        fout.close()
+        t_file = open(f'timetable/{route}.txt', 'r')
+        r_file = open(f'reestr/{route}.txt', 'r')
+        with open(f'calcdata/{route}.txt', 'w') as fout:
+            arr = r_file.readline().split(';')
+            dist = float(arr[0].split()[0].split('(')[0].replace(',', '.'))
+            num = int(arr[1])
+            tmp = t_file.readlines()
+            time = {
+                tmp[i].strip(): list(map(int, tmp[i + 1].split()))
+                for i in range(0, len(tmp), 2)
+            }
+
+            cnt = sum(
+                365 / 7 * i.count('1') * len(value)
+                for i, value in time.items()
+                if 'BA' in i
+            )
+
+            F1[route] = cnt
+            print(dist, file=fout) # Расстояние туда и обратно
+            if route in F2:
+                print(F2[route] / max(num, 1), file=fout)
+            else:
+                print(F1[route] / max(num, 1), file=fout)
+            #print(round(cnt / max(num, 1)), file=fout) # Сколько в среднем за год
+            # проходит один автобус по маршруту
+
+            print(num, file=fout) # количество автобусов на маршруте
+            if route in percent:
+                print(percent[route] * 100, file=fout)
+            elif 'НМ-' in route or 'З-' in route:
+                print(0, file=fout)
+            else:
+                print(Sum * 100, file=fout)
+            #print(100, file=fout) # процент под контактной сетью
+            print(30, file=fout) # расход топлива на 100 км
 
 
 def GetDataFromMGTMap():
